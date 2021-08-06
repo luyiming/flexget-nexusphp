@@ -285,10 +285,24 @@ class NexusPHP(object):
                 # https://lemonhd.org/details_music.php?id=xxx
                 # ...
                 peer_url = re.sub(r'details_\w+.php', 'viewpeerlist.php', link, 1)
+            elif 'hdchina' in link:
+                peer_url = link.replace('details.php', 'ajax_peerlist.php', 1)
             else:
                 peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
+
             try:
                 if config['seeders'] or config['leechers']:  # 配置了seeders、leechers才请求
+                    if 'hdchina' in link:
+                        soup = get_soup(detail_page.text, 'html5lib')
+                        csrf = soup.find('meta', attrs={'name': 'x-csrf'})['content']
+                        torrent_id = str(soup.find('div', class_='details_box').find('span', class_='sp_state_placeholder')['id'])
+                        res = task.requests.post(peer_url, data={
+                            'id': torrent_id,
+                            'csrf': csrf,
+                        }, headers=headers, timeout=10).json()
+                        if res['status'] != 200:
+                            return ''
+                        return res['message']
                     return task.requests.get(peer_url, headers=headers).text  # peer详情
             except Exception:
                 return ''
@@ -363,7 +377,6 @@ class NexusPHP(object):
         if 'hdchina' in link:
             discount, expired_time = NexusPHP.get_discount_from_hdchina(detail_page.text, task, config)
 
-        print(discount, expired_time)
         return discount, seeders, leechers, hr, expired_time
 
     @staticmethod
