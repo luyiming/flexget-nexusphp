@@ -285,6 +285,8 @@ class NexusPHP(object):
                 # https://lemonhd.org/details_music.php?id=xxx
                 # ...
                 peer_url = re.sub(r'details_\w+.php', 'viewpeerlist.php', link, 1)
+            elif 'open.cd' in link:
+                peer_url = re.sub('plugin_details.php', 'viewpeerlist.php', link, 1)
             elif 'hdchina' in link:
                 peer_url = link.replace('details.php', 'ajax_peerlist.php', 1)
             else:
